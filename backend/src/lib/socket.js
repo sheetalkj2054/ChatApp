@@ -7,29 +7,24 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5173", // for local dev
-      "https://chatapp-frontend-5sgg.onrender.com", // for production
-    ],
-    credentials: true,
+    origin: "https://chatapp-frontend-5sgg.onrender.com", // ✅ frontend domain on Render
+    credentials: true, // ✅ required to allow cookie-based auth across origins
   },
 });
+
+// used to store online users
+const userSocketMap = {}; // { userId: socketId }
 
 export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
 }
 
-// used to store online users
-const userSocketMap = {}; // {userId: socketId}
-
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
-  console.log("Socket connected with userId:", userId);
   if (userId) userSocketMap[userId] = socket.id;
 
-  // io.emit() is used to send events to all the connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {

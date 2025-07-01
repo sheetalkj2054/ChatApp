@@ -5,10 +5,19 @@ import express from "express";
 const app = express();
 const server = http.createServer(app);
 
+// Read the same FRONTEND_URL you set in Render env
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 const io = new Server(server, {
   cors: {
-    origin: "https://chatapp-frontend-5sgg.onrender.com", // ✅ frontend domain on Render
-    credentials: true, // ✅ required to allow cookie-based auth across origins
+    origin: (origin, callback) => {
+      // allow non-browser clients like mobile apps or CURL
+      if (!origin) return callback(null, true);
+      if (origin === FRONTEND_URL) return callback(null, true);
+      callback(new Error("Socket.IO CORS policy: origin not allowed"), false);
+    },
+    methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 

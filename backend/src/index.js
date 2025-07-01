@@ -18,13 +18,18 @@ const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "https://chatapp-frontend-5sgg.onrender.com",
-    credentials: true,
-  })
-);
-
+const FRONTEND_URL = process.env.FRONTEND_URL;
+ app.use(
+   cors({
+     origin: (origin, callback) => {
+       // allow requests with no origin (mobile apps, CURL, etc)
+       if (!origin) return callback(null, true);
+       if (origin === FRONTEND_URL) return callback(null, true);
+       callback(new Error("CORS policy: origin not allowed"), false);
+     },
+     credentials: true,
+   })
+ );
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);

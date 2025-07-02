@@ -33,34 +33,30 @@ export const useChatStore = create((set, get) => ({
       set({ isMessagesLoading: false });
     }
   },
-  sendMessage: async ({ text, image }) => {
-  const { selectedUser, messages } = get();
-  try {
-    let payload;
-    let headers;
+  sendMessage: async (messageData) => {
+    const { selectedUser, messages } = get();
+    try {
+      const formData = new FormData();
+      formData.append("text", messageData.text);
+      if (messageData.image) {
+        formData.append("image", messageData.image);
+      }
 
-    if (image) {
-      payload = new FormData();
-      payload.append("text", text);
-      payload.append("image", image); // Assuming it's a File object
-      headers = { "Content-Type": "multipart/form-data" };
-    } else {
-      payload = { text };
-      headers = { "Content-Type": "application/json" };
+      const res = await axiosInstance.post(
+        `/messages/send/${selectedUser._id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      set({ messages: [...messages, res.data] });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to send message");
     }
-
-    const res = await axiosInstance.post(
-      `/messages/send/${selectedUser._id}`,
-      payload,
-      { headers }
-    );
-
-    set({ messages: [...messages, res.data] });
-  } catch (error) {
-    console.error(error);
-    toast.error(error.response?.data?.message || "Failed to send message");
-  }
-},
+  },
 
   subscribeToMessages: () => {
     const { selectedUser } = get();
@@ -69,7 +65,8 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+      const isMessageSentFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
 
       set({

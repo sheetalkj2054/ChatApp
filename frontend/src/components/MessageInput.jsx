@@ -16,7 +16,10 @@ const MessageInput = () => {
       toast.error("Please select an image file");
       return;
     }
-
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
     setImagePreview(URL.createObjectURL(file)); // for preview only
     setImageFile(file); // ✅ store actual file
   };

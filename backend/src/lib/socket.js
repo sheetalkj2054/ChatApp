@@ -1,44 +1,56 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-// Read the same FRONTEND_URL you set in Render env
+// ✅ Read from env
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
+// ✅ Setup Socket.IO with strict CORS
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      // allow non-browser clients like mobile apps or CURL
-      if (!origin) return callback(null, true);
-      if (origin === FRONTEND_URL) return callback(null, true);
-      callback(new Error("Socket.IO CORS policy: origin not allowed"), false);
+      if (!origin || origin === FRONTEND_URL) {
+        return callback(null, true);
+      }
+      return callback(new Error("Socket.IO CORS policy: Origin not allowed"));
     },
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-// used to store online users
-const userSocketMap = {}; // { userId: socketId }
+// ✅ Store userId -> socketId mapping
+const userSocketMap = {};
 
+// Export helper
 export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
 }
 
+// ✅ Socket.IO connection handler
 io.on("connection", (socket) => {
-  console.log("A user connected", socket.id);
-
   const userId = socket.handshake.query.userId;
-  if (userId) userSocketMap[userId] = socket.id;
 
+  if (userId) {
+    userSocketMap[userId] = socket.id;
+    console.log(`User connected: ${userId} => ${socket.id}`);
+  }
+
+  // Send updated online users to everyone
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+  // Handle disconnect
   socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
-    delete userSocketMap[userId];
+    console.log("User disconnected:", socket.id);
+    if (userId) {
+      delete userSocketMap[userId];
+    }
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });

@@ -10,18 +10,14 @@ const MessageInput = () => {
   const { sendMessage } = useChatStore();
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith("image/")) {
+    toast.error("Please select an image file");
+    return;
+  }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
+  setImagePreview(file); // ✅ pass the File object instead of converting to Base64
+};
 
   const removeImage = () => {
     setImagePreview(null);

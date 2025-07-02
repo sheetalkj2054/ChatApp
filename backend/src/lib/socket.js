@@ -14,13 +14,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 // ✅ Setup Socket.IO with strict CORS
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      if (!origin || origin === FRONTEND_URL) {
-        return callback(null, true);
-      }
-      return callback(new Error("Socket.IO CORS policy: Origin not allowed"));
-    },
-    methods: ["GET", "POST"],
+    origin: FRONTEND_URL,
     credentials: true,
   },
 });

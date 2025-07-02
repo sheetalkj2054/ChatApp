@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";
-
 import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
@@ -21,13 +20,7 @@ app.use(cookieParser());
 // ✅ CORS setup with dynamic origin check
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || origin === FRONTEND_URL) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS policy: Not allowed by CORS"));
-      }
-    },
+    origin: FRONTEND_URL, // must be exactly your deployed frontend
     credentials: true,
   })
 );

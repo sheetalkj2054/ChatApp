@@ -1,3 +1,4 @@
+// backend/lib/utils.js
 import jwt from "jsonwebtoken";
 
 export const generateToken = (userId, res) => {
@@ -6,10 +7,10 @@ export const generateToken = (userId, res) => {
   });
 
   res.cookie("jwt", token, {
-    maxAge: 7 * 24 * 60 * 60 * 1000,  // 7 days
     httpOnly: true,
-    sameSite: "None",                // ✅ Must be "None" for cross-origin cookies
-    secure: true,                    // ✅ Always true on HTTPS (like Render)
+    secure: process.env.NODE_ENV !== "development",  // ✅ this ensures HTTPS cookies only in prod
+    sameSite: "None",                                 // ✅ this is needed for frontend-backend on different domains (Render)
+    maxAge: 7 * 24 * 60 * 60 * 1000,                  // 7 days
   });
 
   return token;
